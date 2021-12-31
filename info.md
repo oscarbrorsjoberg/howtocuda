@@ -313,9 +313,35 @@ Thread-level parallelism
 Coalescing memory
 
 ### Coalescing memory 
+
+The word coalesced means that small parts come together as a whole. 
+Like combining or merging.
+The term is used in Cuda to describe how memory is to be read by different
+threads to make execution more efficent.
+The opposite of coaleced memory read is strided memory read.
+
+For a more intiuite explanation:
+[coalesce memory](https://www.youtube.com/watch?v=mLxZyWOI340)
+
+### What does it mean to coalesce memory?
+
+When a GPU thread is reading a memory chunk (global, constant, shared) 
+the instruction will read a fixed size chunk of memory.
+
+However, the thread might only need a certain amount of the chunk.
+So the read instruction will be inefficent.
+
+However if the program can be written in a manner so that the 
+read instruction is fully utilized, ie many threads use the same
+read instruction these threads will utilze coalesced, merged,
+memory.
+
+
+### Some more thoughts on the art of coalescing memory.
+
 So its expensive to read from global memory, piece by piece.
 To mitgate that we want to read a do a coaleshed memory read,
-coaleshe the whole memory into one call. Making the calls for global memory less.
+coalesce the whole memory into one call. Making the calls for global memory less.
 
 For the rgb (16) bit we do not want to call each r, g, b for each pixel we want to coalesche the whole pixel as one call.
 
@@ -334,7 +360,6 @@ Allocate -> copy to padded 2d buffer -> copy back to host
 
 
 ### Texture and Constant Memory
-
 
 __constant__  1  Read only for kernels.
               2. cached on SM  in Constant cache
@@ -359,10 +384,13 @@ But : If Threads reads from different adresses, seperate requests, this will slo
 
 Texture API : 1. Handles filtering, bounce checking and so on
               2. Some boiler plate to set up
+								Makes host code more verbose but 
+								the device code will get smaller.
               3. Data should be copied to CUDA arrays
 
 3.4 Problem : accessing alot of pixel data might be expensive if working with 2D data 
 
+		
     The boiler plate to use Texture API:
         -> use cudaArray : buffers for optimized texture formulation
 
@@ -382,6 +410,8 @@ Texture API : 1. Handles filtering, bounce checking and so on
         kind - Type of transfer
 
         This places the memory in the Texture Memory and optimizes.
+
+			Note: that this is very similar to the OpenGl textures!
 
 
 
@@ -403,13 +433,11 @@ SP's can handle instruction level parallellism:
     So if we want to really max out we want more instructions running at once.
 
     This can be done by computing multiple independent results per thread.
-    By adding more outputs in a thread this can be done.
+    By adding more outputs in a thread this can be achieved.
 
     Caveats:
         Entire warp must run the same instructions
-
         If and loop statemenst can cause divergence
-
         Some threads are left idle while others run
 
     Also to notice:
@@ -433,8 +461,7 @@ This brings us on to shared memory. This maximizes coaleshed memeory when workin
 
 __shared__ to utilize shared memory within blocks within the SM.
 
-
-cooperative_groups::thread_block 
+### cooperative\_groups::thread\_block 
 
 Can be seen as a kind of join, that waits for all the threads to finish within a block 
 before continuing. This becomes necessary when we need to wait until the shared memory 
@@ -473,9 +500,6 @@ See above for the shared memory location within the SM.
         One seems to be to make the stride larger than actually needed by adding a columne.
 
 
-
-
-
 ## Section 4.2 Reduction
 
 A basic building block for many parallell algorithms, makes understand how to communicate inbetween threads.
@@ -485,7 +509,6 @@ Reduction : Combine all elements of an array to produce a single value, binary o
 ### Reduce an array with +operator
 A nice log\_2 n instead of n
 
-
 Caveats:
     1. More data elements than processors
     2. Memory access patterns
@@ -493,8 +516,54 @@ Caveats:
     Shared memory can be used within blocks,
     but sharing between blocks is tricky.
 
+		So first we can read one block into shared memory
+
+Possible improvments:
+
+1. Section reduction uses a single thread
+2. Shared memory bank conflicts
+3. Fine-tuning
+
+For more finetuning improvments check out CUDA Examples:
+[reduction](~/NVIDIA_CUDA-11.5_Samples/6_Advanced/reduction)
 
 
+## FAQ
+
+
+Q1: What is the differenve between \_\_threadfence() and \_\_syncthreads().
+
+These things are quite different, it all comes down to synchronization of blocks
+and threads when running kernel. 
+Threadfence belongs to the fencing funcions and are commonly used when
+threads consume some data that has been produced by other threads.
+Synchtreads belongs to the synchronization functions.
+
+1. \_\_threadfence() 
+	Is used to mitigate a problem.
+	The porblem is that there is no guratee that a block will 
+	know that another block writes to something to global memory.
+	There is no guarantee for the order of writing to global memory
+	outside of a block.
+
+	\_\_threadfence function stalls current thread until its writes to global memory are guaranteed to be visible by all other threads in the grid. So, if you do something like:
+
+	store your data
+	\_\_threadfence()
+	atomically mark a flag
+
+2. \_\_syncthreads()
+Used to coodinate communication between the threads of the same block.
+However the new modern way to sync is to use [cooperative groups](https://developer.nvidia.com/blog/cooperative-groups/)
+
+Q2: What are atomic operations?
+
+From the programming guide:
+``` 
+An atomic function performs a read-modify-write atomic operation on one 32-bit or 64-bit word residing in global or shared memory. 
+For example, atomicAdd() reads a word at some address in global or shared memory, adds a number to it, and writes the result back to the same address.
+The operation is atomic in the sense that it is guaranteed to be performed without interference from other thread
+```
 
 
     
