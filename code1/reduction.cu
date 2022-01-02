@@ -11,19 +11,10 @@
 // CUDA cooperative groups API
 #include <cooperative_groups.h>
 
+#include "utils.h"
 
-#define checkCudaError(code) 		         \
-{																         \
-	if((code) != cudaSuccess) {		         \
-		fprintf(stderr,											 \
-		"Cuda failed due to %s:%d: '%s' \n", \
-				__FILE__,												 \
-				__LINE__,												 \
-		cudaGetErrorString(code));				   \
-	}																			 \
-}																				 \
 
-__device__ unsigned int block_finished = 0;
+__device__ unsigned int blocks_finished = 0;
 
 __device__ bool wait_for_all_blocks()
 {
@@ -63,12 +54,12 @@ __device__ int reduce_block(const int *source, int shared_data[],
 		if(index < blockDim.x){
 			shared_data[index] += shared_data[index + stride];
 		}
-		cooparative_groups::sync(block);
+		cooperative_groups::sync(block);
 	}
 	return shared_data[0];
 }
 
-__device__ void reduce(const int *source, int *dest)
+__global__ void reduce(const int *source, int *dest)
 {
 	// can set the shared data size at runtime
 	// so no need for fixed size in device code
@@ -84,12 +75,18 @@ __device__ void reduce(const int *source, int *dest)
 	}
 	bool is_last = wait_for_all_blocks();
 
+
 	if(is_last){
-		int sum = 0;
-		for(int i = 0; i < gridDim.x; i++){
-			sum += dest[i];
+		// do these writes in parallell
+		/* unsigned int index = 2 * blockIdx.x * blockDim.x + threadIdx.x; */
+
+		for(int stride = 1; stride < gridDim.x; stride *=2 ){
+			int index = 2 * stride * threadIdx.x;
+			if(index < gridDim.x){
+				dest[index] += dest[index + stride];
+			}
+			cooperative_groups::sync(cooperative_groups::this_thread_block());
 		}
-		dest[0] = sum;
 	}
 }
 
@@ -101,9 +98,9 @@ int main(int argc, char **argv)
 
 	std::mt19937 rng;
 	rng.seed(0);
-	std::uniform_int_distribuition<std::mt19937::result_type> dist(0,9);
+	std::uniform_int_distribution<std::mt19937::result_type> dist(0,9);
 
-	for (int i = 0; int i < COUNT; ++i) {
+	for (int i = 0; i < COUNT; ++i) {
 		source[i] = dist(rng);
 	}
 
@@ -118,20 +115,29 @@ int main(int argc, char **argv)
 	int n_blocks = (COUNT + BLOCK_SIZE - 1) / (2 * BLOCK_SIZE);
 	checkCudaError(cudaMalloc(&dest_dev, n_blocks * sizeof(int)));
 
+	
+	int result;
 	{
-		/* KernelTimer t; what is this */
+		KernelTimer t;
 		size_t shared_memory_size = BLOCK_SIZE * sizeof(int);
+		t.start();
 		reduce<<<n_blocks, BLOCK_SIZE, shared_memory_size>>>(source_dev, dest_dev);
+		t.stop();
+
+
+		checkCudaError(
+				cudaMemcpy(&result, dest_dev, sizeof(result), cudaMemcpyDeviceToHost)
+				);
+
+
 	}
 
+	checkCudaError(cudaFree(source_dev));
+	checkCudaError(cudaFree(dest_dev));
 
+	int result_reference = std::accumulate(source.get(), source.get() + COUNT, 0);
+	std::cout << "Sum of " << COUNT << " elements: " << result << "\n";
+	assert(result_reference = result);
 
 	return 0;
-	
-
-
-
-
 }
-
-

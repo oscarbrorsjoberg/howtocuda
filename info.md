@@ -467,6 +467,7 @@ Can be seen as a kind of join, that waits for all the threads to finish within a
 before continuing. This becomes necessary when we need to wait until the shared memory 
 has been filled until reading from it.
 
+### Block Bank conflicts and shared memory access patterns
 
 See above for the shared memory location within the SM.
 
@@ -499,6 +500,29 @@ See above for the shared memory location within the SM.
         Read the CUDA examples on transpose to understand the exact perks of optimazation.
         One seems to be to make the stride larger than actually needed by adding a columne.
 
+Reading/request patterns might affect latency due to these banks. 
+
+Fast request patterns are called multicast or broadcast.
+
+#### Broadcast.
+If all threads in a warp access exactely the same data.
+(data = arr[0]) Value will be read once and broadcasted to threads.
+
+#### Multicast
+If the same value from a particular bank, say a word from addresses n % 64 == 0,
+we'll get a multicast, also fast.
+
+#### Bank Conflicts within a block
+If 2 or more threads read diffent values from the same bank we get bank conflicts.
+Say that we read more than 4 bytes like a double, we'll get bank conflicts since we'll 
+get a 2 way bank conflict.
+
+All uneven banks will be read twice.
+Thus Banks will be read from twice.
+
+Sokution can be to padd the shared memory so we'll a more efficent access pattern.
+
+More detaild info [here](https://www.youtube.com/watch?v=CZgM3DEBplE).
 
 ## Section 4.2 Reduction
 
@@ -526,6 +550,18 @@ Possible improvments:
 
 For more finetuning improvments check out CUDA Examples:
 [reduction](~/NVIDIA_CUDA-11.5_Samples/6_Advanced/reduction)
+
+
+
+## Timing and benchmarking
+
+Timing on the cpu might be problematic, since we would need to use
+cudaDeviceSynchronize(), which stalls the GPU pipeline.
+
+Instead use cudaEvents from the CUDA event API.
+
+[timing](https://developer.nvidia.com/blog/how-implement-performance-metrics-cuda-cc/)
+
 
 
 ## FAQ
