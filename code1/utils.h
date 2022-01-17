@@ -4,7 +4,7 @@
 
 #include <cuda_runtime_api.h>
 
-#define checkCudaError(code) 		         \
+#define ck(code) 		         \
 {																         \
 	if((code) != cudaSuccess) {		         \
 		fprintf(stderr,											 \

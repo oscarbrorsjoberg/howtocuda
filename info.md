@@ -563,6 +563,8 @@ Instead use cudaEvents from the CUDA event API.
 [timing](https://developer.nvidia.com/blog/how-implement-performance-metrics-cuda-cc/)
 
 
+##  prefixSum
+
 
 ## FAQ
 
@@ -601,6 +603,14 @@ For example, atomicAdd() reads a word at some address in global or shared memory
 The operation is atomic in the sense that it is guaranteed to be performed without interference from other thread
 ```
 
+Q3: What is the difference between __global__ and __device__ functions?
+
+From [stackoverflow](https://stackoverflow.com/questions/12373940/difference-between-global-and-device-functions#:~:text=__device__%20functions%20can,to%20set%20the%20kernel%20settings.):
+
+__global__ a device function that is launched from host. (Runs on device)
+		(This is the KERNEL!)
+
+__device__ a device function that is launched by device. (Runs on device)
 
     
 

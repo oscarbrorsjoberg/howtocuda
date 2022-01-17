@@ -1,5 +1,3 @@
-// Add two arrays using CUDA.
-/// Example for videos 1.5 and 2.1
 
 #include <assert.h>
 #include <stdio.h>

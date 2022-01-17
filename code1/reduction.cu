@@ -107,13 +107,13 @@ int main(int argc, char **argv)
 	int *source_dev, *dest_dev;
 	size_t size = COUNT * sizeof(int);
 
-	checkCudaError(cudaMalloc(&source_dev, size));
-	checkCudaError(
+	ck(cudaMalloc(&source_dev, size));
+	ck(
 			cudaMemcpy(source_dev, source.get(), size, cudaMemcpyHostToDevice));
 
 	int BLOCK_SIZE = 128;
 	int n_blocks = (COUNT + BLOCK_SIZE - 1) / (2 * BLOCK_SIZE);
-	checkCudaError(cudaMalloc(&dest_dev, n_blocks * sizeof(int)));
+	ck(cudaMalloc(&dest_dev, n_blocks * sizeof(int)));
 
 	
 	int result;
@@ -125,15 +125,15 @@ int main(int argc, char **argv)
 		t.stop();
 
 
-		checkCudaError(
+		ck(
 				cudaMemcpy(&result, dest_dev, sizeof(result), cudaMemcpyDeviceToHost)
 				);
 
 
 	}
 
-	checkCudaError(cudaFree(source_dev));
-	checkCudaError(cudaFree(dest_dev));
+	ck(cudaFree(source_dev));
+	ck(cudaFree(dest_dev));
 
 	int result_reference = std::accumulate(source.get(), source.get() + COUNT, 0);
 	std::cout << "Sum of " << COUNT << " elements: " << result << "\n";
