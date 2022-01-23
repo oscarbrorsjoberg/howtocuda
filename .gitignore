@@ -1,2 +1,4 @@
-bin/
+bin/*
+code1/build/*
+code1/bin/*
 Learning-CUDA-10-Programming/ 

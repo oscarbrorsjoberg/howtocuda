@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cassert>
 
-#include "functions.hpp"
+#include "kernels/functions.hpp"
 
 
 int main(){
