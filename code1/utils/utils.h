@@ -31,5 +31,6 @@ class KernelTimer
 
 };
 
+void printCudaInformation();
 
 #endif /* end of include guard: UTILS_H_KKV2E5DQ */

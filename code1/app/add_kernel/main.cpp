@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cassert>
 
-#include "kernels/functions.hpp"
+#include "functions.hpp"
+#include "utils.hpp"
 
 
 int main(){
@@ -22,6 +23,5 @@ int main(){
 
 	std::cout << "Function success!\n";
 
-	return 1;
-
+	return EXIT_SUCCES;
 }

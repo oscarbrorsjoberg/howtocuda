@@ -6,10 +6,10 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 # find_package(CUDA REQUIRED)
+
 enable_language(CUDA)
 include(CheckLanguage)
 check_language(CUDA)
-
 
 set(build_flags #APPEND
  "-std=c++17"
@@ -55,14 +55,44 @@ target_link_libraries(kernels INTERFACE
 	)
 
 
+
 add_executable(
-	${PROJECT_NAME}
-	main.cpp
+	print_cuda
+	app/print_info/main.cpp
+
 )
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES 61)
+set_property(TARGET print_cuda PROPERTY CUDA_ARCHITECTURES 61)
 
-target_include_directories(${PROJECT_NAME} INTERFACE
+target_include_directories(print_cuda INTERFACE
+	${CMAKE_CURRENT_SOURCE_DIR}/utils/
+)
+
+# Same as -dc flag
+# Compile each .c, .cc, .cpp, .cxx, and .cu input file into an object file that contains 
+# relocatable device code.
+
+set_target_properties(print_cuda 
+	PROPERTIES
+	CUDA_SEPERABLE_COMPILATION ON
+)
+
+target_link_libraries(print_cuda
+	PRIVATE
+	utils
+)
+
+
+
+#  add kernel
+add_executable(
+	add_kernel
+	app/add_kernel/main.cpp
+)
+
+set_property(TARGET add_kernel PROPERTY CUDA_ARCHITECTURES 61)
+
+target_include_directories(add_kernel INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/kernels/
 )
 
@@ -78,12 +108,12 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 # Compile each .c, .cc, .cpp, .cxx, and .cu input file into an object file that contains 
 # relocatable device code.
 
-set_target_properties(${PROJECT_NAME} 
+set_target_properties(add_kernel 
 	PROPERTIES
 	CUDA_SEPERABLE_COMPILATION ON
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(add_kernel
 	PRIVATE
 	kernels
 )
