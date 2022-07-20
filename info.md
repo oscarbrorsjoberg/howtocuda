@@ -126,6 +126,8 @@ An SM can handle a warp at a time (32 threads).
 
  ## SIMT unlike SIMD this is scalable
 
+ (Single Instruction, Multiple Thread)
+
  Warps = 32 threads, can bee seen as one compute unit
 
  No overhead for switching warps
@@ -331,7 +333,7 @@ the instruction will read a fixed size chunk of memory.
 However, the thread might only need a certain amount of the chunk.
 So the read instruction will be inefficent.
 
-However if the program can be written in a manner so that the 
+So if the program can be written in a manner so that the 
 read instruction is fully utilized, ie many threads use the same
 read instruction these threads will utilze coalesced, merged,
 memory.
@@ -580,7 +582,7 @@ Synchtreads belongs to the synchronization functions.
 1. \_\_threadfence() 
 	Is used to mitigate a problem.
 	The porblem is that there is no guratee that a block will 
-	know that another block writes to something to global memory.
+	know that another block writes to something in global memory.
 	There is no guarantee for the order of writing to global memory
 	outside of a block.
 
@@ -600,7 +602,7 @@ From the programming guide:
 ``` 
 An atomic function performs a read-modify-write atomic operation on one 32-bit or 64-bit word residing in global or shared memory. 
 For example, atomicAdd() reads a word at some address in global or shared memory, adds a number to it, and writes the result back to the same address.
-The operation is atomic in the sense that it is guaranteed to be performed without interference from other thread
+The operation is atomic in the sense that it is guaranteed to be performed without interference from other threads
 ```
 
 Q3: What is the difference between __global__ and __device__ functions?
@@ -613,6 +615,8 @@ __global__ a device function that is launched from host. (Runs on device)
 __device__ a device function that is launched by device. (Runs on device)
 
     
+Q4: Difference between driver and runtime API
+[here](https://docs.nvidia.com/cuda/cuda-runtime-api/driver-vs-runtime-api.html#driver-vs-runtime-api)
 
 
 

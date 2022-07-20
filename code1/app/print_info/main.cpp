@@ -5,5 +5,5 @@
 int main(){
 
 	printCudaInformation();
-	return EXIT_SUCCES;
+	return EXIT_SUCCESS;
 }

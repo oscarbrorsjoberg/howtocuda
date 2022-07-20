@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "functions.hpp"
-#include "utils.hpp"
+#include "utils.h"
 
 
 int main(){
@@ -23,5 +23,5 @@ int main(){
 
 	std::cout << "Function success!\n";
 
-	return EXIT_SUCCES;
+	return EXIT_SUCCESS;
 }

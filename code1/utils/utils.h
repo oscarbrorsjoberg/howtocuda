@@ -2,9 +2,8 @@
 #define UTILS_H_KKV2E5DQ
 
 
-#include <cuda_runtime_api.h>
-
-#define ck(code) 		         \
+// cuda error interpreter
+#define ck(code) 		                     \
 {																         \
 	if((code) != cudaSuccess) {		         \
 		fprintf(stderr,											 \
@@ -15,22 +14,12 @@
 	}																			 \
 }																				 \
 
-class KernelTimer
-{
-
- public:
-  KernelTimer();
-  ~KernelTimer();
-
-	void start();
-	void stop();
-
- private:
-	cudaEvent_t start_;
-	cudaEvent_t stop_;
-
-};
 
 void printCudaInformation();
+
+
+bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h);
+void savePPM(const char *file, pixel *data, unsigned int w, unsigned int h);
+
 
 #endif /* end of include guard: UTILS_H_KKV2E5DQ */

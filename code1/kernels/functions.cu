@@ -18,8 +18,9 @@
 // CUDA cooperative groups API
 #include <cooperative_groups.h>
 
-#include "utils.h"
+#include "KernelTimer.hpp"
 #include "functions.hpp"
+#include "utils.h"
 
 
 __global__ void add_kernel(float *dest, int n_elts, 

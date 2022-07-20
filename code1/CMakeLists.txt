@@ -1,11 +1,14 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.17)
 project(cudaKernelLib VERSION 0.0.0 LANGUAGES CUDA CXX)
 
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
-# find_package(CUDA REQUIRED)
+# should not use?
+find_package(CUDA REQUIRED)
+# https://stackoverflow.com/questions/27018340/cmake-does-not-properly-find-cuda-library
+find_package(CUDAToolkit REQUIRED)
 
 enable_language(CUDA)
 include(CheckLanguage)
@@ -19,7 +22,6 @@ set(build_flags #APPEND
 )
 
 # CUDA COMPLIER TODO: read this:
-
 # https://developer.nvidia.com/blog/building-cuda-applications-cmake/
 # https://cliutils.gitlab.io/modern-cmake/chapters/packages/CUDA.html
 
@@ -34,10 +36,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 # cuda utils
 add_library(utils INTERFACE)
+set_property(TARGET utils PROPERTY CUDA_ARCHITECTURES 61)
 target_sources(utils INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/utils.cu)
 target_include_directories(utils INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/
+	/home/oscar/NVIDIA_CUDA-11.5_Samples/common/inc/
+	)
+target_link_libraries(
+	utils INTERFACE
+	CUDA::cudart
+	CUDA::cuda_driver
+	)
+
+add_library(timer INTERFACE)
+set_property(TARGET timer PROPERTY CUDA_ARCHITECTURES 61)
+target_sources(timer INTERFACE
+	${CMAKE_CURRENT_SOURCE_DIR}/kernels/KernelTimer.cu)
+target_include_directories(timer INTERFACE
+	${CMAKE_CURRENT_SOURCE_DIR}/kernels/
 	)
 
 add_library(kernels INTERFACE)
@@ -49,39 +66,29 @@ target_sources(kernels INTERFACE
 target_include_directories(kernels INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/kernels/
 	)
-
 target_link_libraries(kernels INTERFACE
 	utils
-	)
-
-
+)
 
 add_executable(
 	print_cuda
 	app/print_info/main.cpp
-
 )
 
-set_property(TARGET print_cuda PROPERTY CUDA_ARCHITECTURES 61)
-
+# set_property(TARGET print_cuda PROPERTY CUDA_ARCHITECTURES 61)
 target_include_directories(print_cuda INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/
 )
 
-# Same as -dc flag
-# Compile each .c, .cc, .cpp, .cxx, and .cu input file into an object file that contains 
-# relocatable device code.
-
+set_property(TARGET print_cuda PROPERTY CUDA_ARCHITECTURES 61)
 set_target_properties(print_cuda 
 	PROPERTIES
 	CUDA_SEPERABLE_COMPILATION ON
 )
-
 target_link_libraries(print_cuda
 	PRIVATE
 	utils
 )
-
 
 
 #  add kernel
@@ -94,6 +101,7 @@ set_property(TARGET add_kernel PROPERTY CUDA_ARCHITECTURES 61)
 
 target_include_directories(add_kernel INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/kernels/
+	${CMAKE_CURRENT_SOURCE_DIR}/utils/
 )
 
 # main will be build with build flags as above,
@@ -116,5 +124,7 @@ set_target_properties(add_kernel
 target_link_libraries(add_kernel
 	PRIVATE
 	kernels
+	utils
+	timer
 )
 
