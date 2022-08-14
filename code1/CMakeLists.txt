@@ -41,7 +41,8 @@ target_sources(utils INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/utils.cu)
 target_include_directories(utils INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/
-	/home/oscar/NVIDIA_CUDA-11.5_Samples/common/inc/
+  # for simple print function
+	/home/oscar/sw/gpgpu/cuda_samples/cuda-samples/Common/
 	)
 target_link_libraries(
 	utils INTERFACE

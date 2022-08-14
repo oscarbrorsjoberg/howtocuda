@@ -40,7 +40,7 @@ __global__ void pack_image(const image planar, pixel *packed, int pixel_count)
 static const unsigned int HEADER_SIZE = 0x40;
 static const unsigned int CHANNELS = 3;
 
-static bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h)
+bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h)
 {
   FILE *fp = fopen(file, "rb");
 
@@ -178,7 +178,6 @@ bool CU_getppm(const std::string &input_path, image *im)
 	ck(cudaMalloc());
 	ck(cudaMalloc());
 	ck(cudaMalloc());
-
 
 
 

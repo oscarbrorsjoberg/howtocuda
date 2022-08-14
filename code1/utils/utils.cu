@@ -1,4 +1,3 @@
-
 // Utility functions for example programs.
 
 #include <assert.h>

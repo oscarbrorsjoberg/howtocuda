@@ -522,7 +522,7 @@ get a 2 way bank conflict.
 All uneven banks will be read twice.
 Thus Banks will be read from twice.
 
-Sokution can be to padd the shared memory so we'll a more efficent access pattern.
+Solution can be to padd the shared memory so we'll a more efficent access pattern.
 
 More detaild info [here](https://www.youtube.com/watch?v=CZgM3DEBplE).
 
