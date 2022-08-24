@@ -5,6 +5,7 @@
 #include <cuda_runtime_api.h>
 
 #include "utils.h"
+#include "utils/ims.hpp"
 
 struct light {
   float x;
@@ -22,7 +23,6 @@ int main(int argc, char *argv[]){
     out(argv[2]);
   }
 
-
   light light1 = {0.2, 0.1, 0.1, 4.0};
   light light2 = {0.25, 0.2, 0.075, 2.0};
   light light3 = {0.5, 0.5, 0.3, 0.3};
@@ -37,8 +37,8 @@ int main(int argc, char *argv[]){
   if (!loadPPM(current, &host_image, &params.width, &params.height)) {
     std::cerr << "Unable to load data " << in << "\n";
   }
-  image_size 
-    
+
+  /* image_size */ 
 
 
   free_image(input2d);
