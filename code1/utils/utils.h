@@ -1,6 +1,7 @@
 #ifndef UTILS_H_KKV2E5DQ
 #define UTILS_H_KKV2E5DQ
 
+#include <cuda_runtime_api.h>
 
 // cuda error interpreter
 #define ck(code) 		                     \

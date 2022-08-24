@@ -619,14 +619,7 @@ Q4: Difference between driver and runtime API
 [here](https://docs.nvidia.com/cuda/cuda-runtime-api/driver-vs-runtime-api.html#driver-vs-runtime-api)
 
 
-
-
-
-
-    
- 
-
-
-
-
-
+Q5: How to monitor the gpu memory and usage.
+Use the nivida stuff (nvidia-smi)? 
+Can also use gpustat.
+https://github.com/wookayin/gpustat
