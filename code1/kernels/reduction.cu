@@ -125,9 +125,8 @@ int main(int argc, char **argv)
 		t.stop();
 
 
-		ck(
-				cudaMemcpy(&result, dest_dev, sizeof(result), cudaMemcpyDeviceToHost)
-				);
+		ck(cudaMemcpy(&result, dest_dev, 
+          sizeof(result), cudaMemcpyDeviceToHost));
 
 
 	}

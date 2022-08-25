@@ -7,7 +7,7 @@
 #include <cuda_runtime_api.h>
 
 #include "utils.h"
-#include "ims.hpp"
+#include "ims/ims.hpp"
 
 /******************************************************************************
 * File:             ppm.cu
@@ -17,24 +17,24 @@
 * Description:      A ppm read write for cuda alignment
 *****************************************************************************/
 
-__global__ void unpack_image(planar_image_t planar, const pixel *packed, int pixel_count)
+__global__ void unpack_image(planar_image_t planar, const pixel_t *packed, int pixel_count)
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index >= pixel_count) return;
 
-  planar.red[index] = packed[index].red;
-  planar.green[index] = packed[index].green;
-  planar.blue[index] = packed[index].blue;
+  planar.r[index] = packed[index].r;
+  planar.g[index] = packed[index].g;
+  planar.b[index] = packed[index].b;
 }
 
-__global__ void pack_image(const planar_image_t planar, pixel *packed, int pixel_count)
+__global__ void pack_image(const planar_image_t planar, pixel_t *packed, int pixel_count)
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index >= pixel_count) return;
 
-  packed[index].red = planar.red[index];
-  packed[index].green = planar.green[index];
-  packed[index].blue = planar.blue[index];
+  packed[index].r = planar.r[index];
+  packed[index].g = planar.g[index];
+  packed[index].b = planar.b[index];
 }
 
 
@@ -49,7 +49,7 @@ static const unsigned int CHANNELS = 3;
 * Error:            
 *****************************************************************************/
 
-bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h)
+bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h)
 {
   FILE *fp = fopen(file, "rb");
 
@@ -108,7 +108,7 @@ bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h)
   }
   fclose(fp);
 
-  pixel *pixel_data = static_cast<pixel *>(malloc(pixel_count * sizeof(pixel)));
+  pixel_t *pixel_data = static_cast<pixel_t*>(malloc(pixel_count * sizeof(pixel_t)));
   float scale = 1.0f / 255.0f;
   for (int i = 0; i < pixel_count; i++) {
     pixel_data[i].r = raw_data[3 * i + 0] * scale;
@@ -128,7 +128,7 @@ bool loadPPM(const char *file, pixel **data, unsigned int *w, unsigned int *h)
 * Return:           
 * Error:            
 *****************************************************************************/
-void savePPM(const char *file, pixel *data, unsigned int w, unsigned int h)
+void savePPM(const char *file, pixel_t *data, unsigned int w, unsigned int h)
 {
   assert(data != nullptr);
   assert(w > 0);
@@ -146,9 +146,9 @@ void savePPM(const char *file, pixel *data, unsigned int w, unsigned int h)
 
   unsigned int pixel_count = w * h;
   for (unsigned int i = 0; (i < pixel_count) && fh.good(); ++i) {
-    fh << static_cast<unsigned char>(data[i].red * 255);
-    fh << static_cast<unsigned char>(data[i].green * 255);
-    fh << static_cast<unsigned char>(data[i].blue * 255);
+    fh << static_cast<unsigned char>(data[i].r* 255);
+    fh << static_cast<unsigned char>(data[i].g * 255);
+    fh << static_cast<unsigned char>(data[i].b * 255);
   }
 
   fh.flush();
@@ -163,14 +163,14 @@ void savePPM(const char *file, pixel *data, unsigned int w, unsigned int h)
 
 planar_image_t planar_image_create(int pixel_count)
 {
-  image out;
-  ck(cudaMalloc(&result.red, pixel_count * sizeof(float)));
-  ck(cudaMalloc(&result.green, pixel_count * sizeof(float)));
-  ck(cudaMalloc(&result.blue, pixel_count * sizeof(float)));
-  return result;
+  planar_image_t out;
+  ck(cudaMalloc(&out.r, pixel_count * sizeof(float)));
+  ck(cudaMalloc(&out.g, pixel_count * sizeof(float)));
+  ck(cudaMalloc(&out.b, pixel_count * sizeof(float)));
+  return out;
 }
 
-void planar_image_free(const planar_image &img)
+void planar_image_free(planar_image_t &img)
 {
   ck(cudaFree(img.r));
   ck(cudaFree(img.g));
@@ -180,32 +180,42 @@ void planar_image_free(const planar_image &img)
 // this is stolen from corse, why 128?
 constexpr int BLOCK_SIZE = 128;
 
-bool CU_readppm(const std::string &input_path, planar_image_t *device_image)
+/*
+   reads host ppm and creates planar image on device from host
+   */
+
+bool CU_readppm_planar_image(
+    const std::string &input_path, planar_image_t &device_image)
 {
-	int width, height;
-	pixel *host_pixels = nullptr;
-	if (!loadPPM(input_path.c_str(), 
+	unsigned int width, height;
+  // loading pixels (as (rgb per pixel))
+	pixel_t *host_pixels = nullptr;
+	if (!loadPPM(input_path.c_str(),
 				&host_pixels, &width, &height)) {
 		std::cerr << "Couldn't read image " << input_path << "\n";
+    return false;
 	}
+  if(host_pixels){
+    int pixel_count = width * height;
 
+    device_image = planar_image_create(pixel_count);
 
+    size_t image_size = width * height * sizeof(pixel_t);
+    pixel_t *device_pixels;
+    ck(cudaMalloc(&device_pixels, (int)image_size));
+    ck(cudaMemcpy(device_pixels, host_pixels, (int)image_size, cudaMemcpyHostToDevice));
 
-  int pixel_count = width * height;
-  *device_image = planar_image_create(pixel_count);
+    // number of pixels per block?
+    int number_blocks = (pixel_count + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
-  size_t image_size = width * height * sizeof(pixel);
-  cudaCheckError(cudaMemcpy(params.input_image, host_image, image_size,
-        cudaMemcpyHostToDevice));
+    // unpack image create planar image
+    unpack_image<<<number_blocks, BLOCK_SIZE>>>(device_image, device_pixels,
+        pixel_count);
 
-  // number of pixels per block?
-  int number_blocks = (pixel_count + BLOCK_SIZE - 1) / BLOCK_SIZE;
-
-  unpack_image<<<number_blocks, BLOCK_SIZE>>>(*device_image, host_pixels,
-                                              pixel_count);
- 
-  ck(CudaFree())
-
+    ck(cudaFree(device_pixels));
+    free(host_pixels);
+  }
+  return true;
 }
 
 
