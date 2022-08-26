@@ -161,9 +161,15 @@ void savePPM(const char *file, pixel_t *data, unsigned int w, unsigned int h)
   fh.close();
 }
 
-planar_image_t planar_image_create(int pixel_count)
+planar_image_t planar_image_create(int width, int height)
 {
   planar_image_t out;
+
+  out.width = width;
+  out.height = height;
+
+  int pixel_count = width * height;
+
   ck(cudaMalloc(&out.r, pixel_count * sizeof(float)));
   ck(cudaMalloc(&out.g, pixel_count * sizeof(float)));
   ck(cudaMalloc(&out.b, pixel_count * sizeof(float)));
@@ -198,9 +204,9 @@ bool CU_readppm_planar_image(
   if(host_pixels){
     int pixel_count = width * height;
 
-    device_image = planar_image_create(pixel_count);
+    device_image = planar_image_create(width, height);
 
-    size_t image_size = width * height * sizeof(pixel_t);
+    size_t image_size = pixel_count * sizeof(pixel_t);
     pixel_t *device_pixels;
     ck(cudaMalloc(&device_pixels, (int)image_size));
     ck(cudaMemcpy(device_pixels, host_pixels, (int)image_size, cudaMemcpyHostToDevice));

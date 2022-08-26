@@ -13,11 +13,13 @@ struct planar_image_t {
   float *r;
   float *g;
   float *b;
+  int width;
+  int height;
 };
 
 /* bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h); */
 /* void savePPM(const char *file, pixel_t *data, unsigned int w, unsigned int h); */
 
 bool CU_readppm_planar_image(const std::string &input_path, planar_image_t &image);
-planar_image_t planar_image_create(uint32_t number_of_pixels);
+planar_image_t planar_image_create(int width, int height);
 void planar_image_free(planar_image_t &img);
