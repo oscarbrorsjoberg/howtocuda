@@ -5,8 +5,6 @@
 * Created:          01/17/22 
 * Description:			Some Cuda Functions
 *****************************************************************************/
-
-
 #include <assert.h>
 #include <iostream>
 #include <memory>
@@ -21,7 +19,6 @@
 #include "KernelTimer.hpp"
 #include "functions.hpp"
 #include "utils.h"
-
 
 __global__ void add_kernel(float *dest, int n_elts, 
 													const float *a, const float *b)

@@ -1,4 +1,5 @@
 #include <cuda_runtime_api.h>
+#include <string>
 
 /* A single pixel with floating-point channel values */
 struct __align__ (16) pixel_t {
@@ -17,9 +18,9 @@ struct planar_image_t {
   int height;
 };
 
-/* bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h); */
-/* void savePPM(const char *file, pixel_t *data, unsigned int w, unsigned int h); */
+bool CU_readppm_planar_image(const std::string &input_path, planar_image_t &device_image);
+bool CU_saveppm_planar_image(const std::string &output_path, const planar_image_t &device_image);
 
-bool CU_readppm_planar_image(const std::string &input_path, planar_image_t &image);
 planar_image_t planar_image_create(int width, int height);
 void planar_image_free(planar_image_t &img);
+

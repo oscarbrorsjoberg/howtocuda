@@ -7,6 +7,7 @@
 #include <cuda_runtime_api.h>
 
 #include "utils.h"
+#include "KernelTimer.hpp"
 #include "ims/ims.hpp"
 
 struct light_t {
@@ -34,7 +35,7 @@ __device__ float light_brightness(float x, float y, unsigned int width,
     return 0;
   }
 
-  float distance = sqrtf(distance_squared);
+  float distance = sqrtf(dsqrd);
 
   float scaled_distance = distance / light.radius;
 
@@ -46,14 +47,20 @@ __device__ float light_brightness(float x, float y, unsigned int width,
   }
 }
 
-__global__ void spotlights(const planar_image_t source, planar_image_t dest, float ambient, 
-                           light_t *lights, int number_of_lights)
+__global__ void spotlights(const planar_image_t source, 
+                           planar_image_t dest, 
+                           float ambient, 
+                           light_t light_1,
+                           light_t light_2,
+                           light_t light_3,
+                           light_t light_4
+                           )
 {
   int x = blockIdx.x * blockDim.x + threadIdx.x;
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
 
-  if(x >= width || y >= height){ 
+  if(x >= source.width || y >= source.height){ 
     return;
   }
 
@@ -61,9 +68,12 @@ __global__ void spotlights(const planar_image_t source, planar_image_t dest, flo
 
   float brightness = ambient;
 
-  for(int i = 0; i < number_of_lights; ++i){
-    brightness += light_brightness(x,y, source.width, source.heigth, lights[i]);
-  }
+  /* for(int i = 0; i < number_of_lights; ++i){ */
+  brightness += light_brightness(x,y, source.width, source.height, light_1);
+  brightness += light_brightness(x,y, source.width, source.height, light_2);
+  brightness += light_brightness(x,y, source.width, source.height, light_3);
+  brightness += light_brightness(x,y, source.width, source.height, light_4);
+  /* } */
 
   dest.r[index] = clamp(source.r[index] * brightness);
   dest.g[index] = clamp(source.g[index] * brightness);
@@ -91,18 +101,7 @@ int main(int argc, char *argv[]){
   light_t light3 = {0.5, 0.5, 0.3, 0.3};
   light_t light4 = {0.7, 0.65, 0.15, 0.8};
 
-  ligth_t lights[] = {light1, light2,
-                      light3, light4 };
-
-  int number_of_lights = 4;
   float ambient_brtness = 0.4f;
-
-  // these will be loaded on device
-  /* pixel_t *input_image = nullptr; */
-  /* int input_im_h = input_im_w = 0; */
-
-  /* pixel_t *output_image = nullptr; */
-  /* int output_im_h = output_im_w = 0; */
 
   planar_image_t image_in, image_out;
   if(!CU_readppm_planar_image(in_path, image_in)){
@@ -120,19 +119,29 @@ int main(int argc, char *argv[]){
   dim3 grid_dim((image_in.width + BLOCK_DIM.x - 1) / BLOCK_DIM.x,
                 (image_in.height + BLOCK_DIM.y - 1) / BLOCK_DIM.y);
 
-
+  
   {
-    KernelTimer t;
-    t.start();
-    spotlights<<<grid_dim, BLOCK_DIM>>>(image_in, image_out)
-    t.stop();
+  KernelTimer t;
+  t.start();
+  spotlights<<<grid_dim, BLOCK_DIM>>>(image_in, image_out,
+                                      ambient_brtness,
+                                      light1,
+                                      light2,
+                                      light3,
+                                      light4);
+  t.stop();
   }
 
-  // write image
 
 
-  //free images
 
+  if(!CU_saveppm_planar_image(out_path, image_out)){
+    std::cerr << "Unable to save image " << out_path << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  planar_image_free(image_in);
+  planar_image_free(image_out);
 
   return EXIT_SUCCESS;
 }

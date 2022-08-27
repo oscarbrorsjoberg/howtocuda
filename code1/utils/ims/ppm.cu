@@ -49,7 +49,7 @@ static const unsigned int CHANNELS = 3;
 * Error:            
 *****************************************************************************/
 
-bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h)
+static bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h)
 {
   FILE *fp = fopen(file, "rb");
 
@@ -128,37 +128,40 @@ bool loadPPM(const char *file, pixel_t **data, unsigned int *w, unsigned int *h)
 * Return:           
 * Error:            
 *****************************************************************************/
-void savePPM(const char *file, pixel_t *data, unsigned int w, unsigned int h)
+static bool savePPM(const std::string &file, const pixel_t *pixels, 
+                          int width, int height)
 {
-  assert(data != nullptr);
-  assert(w > 0);
-  assert(h > 0);
+  assert(pixels != nullptr);
+  assert(width > 0);
+  assert(height > 0);
 
   std::fstream fh(file, std::fstream::out | std::fstream::binary);
 
   if (fh.bad()) {
     std::cerr << "savePPM() : open failed.\n";
-    return;
+    return false;
   }
 
   fh << "P6\n";
-  fh << w << "\n" << h << "\n" << 0xff << "\n";
+  fh << width << "\n" << height << "\n" << 0xff << "\n";
 
-  unsigned int pixel_count = w * h;
+  unsigned int pixel_count = width * height;
+
   for (unsigned int i = 0; (i < pixel_count) && fh.good(); ++i) {
-    fh << static_cast<unsigned char>(data[i].r* 255);
-    fh << static_cast<unsigned char>(data[i].g * 255);
-    fh << static_cast<unsigned char>(data[i].b * 255);
+    fh << static_cast<unsigned char>(pixels[i].r* 255);
+    fh << static_cast<unsigned char>(pixels[i].g * 255);
+    fh << static_cast<unsigned char>(pixels[i].b * 255);
   }
 
   fh.flush();
 
   if (fh.bad()) {
     std::cerr << "savePPM() : writing data failed.\n";
-    return;
+    return false;
   }
 
   fh.close();
+  return true;
 }
 
 planar_image_t planar_image_create(int width, int height)
@@ -168,11 +171,12 @@ planar_image_t planar_image_create(int width, int height)
   out.width = width;
   out.height = height;
 
-  int pixel_count = width * height;
+ int pixel_count = width * height;
 
-  ck(cudaMalloc(&out.r, pixel_count * sizeof(float)));
-  ck(cudaMalloc(&out.g, pixel_count * sizeof(float)));
-  ck(cudaMalloc(&out.b, pixel_count * sizeof(float)));
+ ck(cudaMalloc(&out.r, pixel_count * sizeof(float)));
+ ck(cudaMalloc(&out.g, pixel_count * sizeof(float)));
+ ck(cudaMalloc(&out.b, pixel_count * sizeof(float)));
+
   return out;
 }
 
@@ -190,6 +194,7 @@ constexpr int BLOCK_SIZE = 128;
    reads host ppm and creates planar image on device from host
    */
 
+
 bool CU_readppm_planar_image(
     const std::string &input_path, planar_image_t &device_image)
 {
@@ -205,9 +210,9 @@ bool CU_readppm_planar_image(
     int pixel_count = width * height;
 
     device_image = planar_image_create(width, height);
-
     size_t image_size = pixel_count * sizeof(pixel_t);
     pixel_t *device_pixels;
+
     ck(cudaMalloc(&device_pixels, (int)image_size));
     ck(cudaMemcpy(device_pixels, host_pixels, (int)image_size, cudaMemcpyHostToDevice));
 
@@ -224,5 +229,40 @@ bool CU_readppm_planar_image(
   return true;
 }
 
+/*
+  --   saves image as ppm (by packing it to pixels)
+*/
 
+bool CU_saveppm_planar_image(
+    const std::string &output_path, const planar_image_t &device_image)
+{
+
+  int pixel_count = device_image.width * device_image.height;
+  int number_blocks = (pixel_count + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+  pixel_t *host_pixels;
+  pixel_t *dev_pixels;
+
+  int image_size = pixel_count * (int)sizeof(pixel_t);
+
+  ck(cudaMalloc(&dev_pixels, image_size));
+
+  host_pixels = new pixel_t[pixel_count];
+
+  // unpack image create planar image
+  pack_image<<<number_blocks, BLOCK_SIZE>>>(device_image, dev_pixels,
+                                              pixel_count);
+  ck(cudaMemcpy(host_pixels, dev_pixels, image_size, cudaMemcpyDeviceToHost));
+
+  ck(cudaFree(dev_pixels));
+
+  if(!savePPM(output_path, host_pixels, device_image.width, device_image.height)){
+    std::cerr << "Unable to save image " << output_path << "\n";
+    return false;
+  }
+
+  delete[] host_pixels;
+
+  return true;
+}
 

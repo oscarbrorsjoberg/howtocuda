@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.17)
 project(cudaKernelLib VERSION 0.0.0 LANGUAGES CUDA CXX)
 
+# to create CompileCommands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
