@@ -2,4 +2,6 @@ bin/*
 code1/build/*
 code1/bin/*
 code1/Thirdparty/*
+code1/images/*
 Learning-CUDA-10-Programming/ 
+*.ppm

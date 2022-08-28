@@ -7,7 +7,6 @@
 *****************************************************************************/
 #include <assert.h>
 #include <iostream>
-#include <memory>
 #include <numeric>
 #include <vector>
 

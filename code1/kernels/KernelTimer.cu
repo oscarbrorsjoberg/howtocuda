@@ -1,12 +1,6 @@
-#include <assert.h>
-#include <getopt.h>
-#include <cstring>
-#include <fstream>
 #include <iostream>
-#include <memory>
 #include <cuda_runtime_api.h>
 
-/* #include <helper_cuda.h> */
 #include "KernelTimer.hpp"
 
 KernelTimer::KernelTimer()

@@ -1,7 +1,5 @@
 # CUDA 
-
 The gp-gpu made easy.
-
 
 ## Programming with CUDA
 
