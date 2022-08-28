@@ -4,6 +4,20 @@ project(cudaKernelLib VERSION 0.0.0 LANGUAGES CUDA CXX)
 # to create CompileCommands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
+set(cuda_debug_flags 
+    "")
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
+    set(cuda_debug_flags 
+        "-g" # debug cuda
+        "-G" # debug device
+        )
+endif()
+
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
@@ -32,6 +46,7 @@ set(build_flags #APPEND
 
 set(CUDA_NVCC_FLAGS 
     ${CUDA_NVCC_FLAGS}
+    ${cuda_debug_flags}
     -O3
 )
 set(CUDA_HOST_COMPLIER /usr/bin/g++)
