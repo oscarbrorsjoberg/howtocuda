@@ -13,8 +13,14 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
     set(cuda_debug_flags 
-        "-g" # debug cuda
+        "-g" # debug host
         "-G" # debug device
+        )
+elseif(CMAKE_BUILD_TYPE EQUAL Profiling)
+    set(cuda_debug_flags 
+        "-lineinfo" 
+        # -G turns of optimization for device code, 
+        # this optimizes but keeps line information
         )
 endif()
 

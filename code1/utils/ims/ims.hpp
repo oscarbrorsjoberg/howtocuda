@@ -9,6 +9,15 @@ struct __align__ (16) pixel_t {
   float a;
 };
 
+
+/* unaligned pixel */
+struct upixel_t {
+  float r;
+  float g;
+  float b;
+  float a;
+};
+
 // planar image
 struct planar_image_t {
   float *r;

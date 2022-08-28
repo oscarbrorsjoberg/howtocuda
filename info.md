@@ -117,6 +117,8 @@ SP -> executes thread in block according to kernel code.
 
 An SM can handle a warp at a time (32 threads).
 
+To put it a little more elegantly. 
+Threads -- our abstraction of the smallest process being executed -- are grouped into threadblocks according to the grid. These needs to be assigned to the SMs (the organized workers) on the device so that the SPs can execute the process. The blocks of threads are then grouped into warps -- 32 threads that will be executed simultaneously on a SM. (Each thread on a SP?)
 
 ## Hardware Architecture
 
@@ -283,12 +285,9 @@ In the drop down we got several suggestions:
 
 Files generated
 
-
 ### Nsight compute
 
-
 ### Nsight graphics
-
 
 ## Memory Efficiently
 To fully understand how to use memory 
@@ -317,10 +316,10 @@ Coalescing memory
 The word coalesced means that small parts come together as a whole. 
 Like combining or merging.
 The term is used in Cuda to describe how memory is to be read by different
-threads to make execution more efficent.
-The opposite of coaleced memory read is strided memory read.
+threads to make execution more efficient.
+The opposite of coalesced memory read is strided memory read.
 
-For a more intiuite explanation:
+For a more intuitive explanation:
 [coalesce memory](https://www.youtube.com/watch?v=mLxZyWOI340)
 
 ### What does it mean to coalesce memory?
@@ -329,7 +328,7 @@ When a GPU thread is reading a memory chunk (global, constant, shared)
 the instruction will read a fixed size chunk of memory.
 
 However, the thread might only need a certain amount of the chunk.
-So the read instruction will be inefficent.
+So the read instruction will be inefficient.
 
 So if the program can be written in a manner so that the 
 read instruction is fully utilized, ie many threads use the same
@@ -340,24 +339,35 @@ memory.
 ### Some more thoughts on the art of coalescing memory.
 
 So its expensive to read from global memory, piece by piece.
-To mitgate that we want to read a do a coaleshed memory read,
+To mitigate that we want to read a do a coalesced memory read,
 coalesce the whole memory into one call. Making the calls for global memory less.
 
 For the rgb (16) bit we do not want to call each r, g, b for each pixel we want to coalesche the whole pixel as one call.
 
-This can be done with the __align__ command. Telling nvcc to se the whole struct as a complete call.
+This can be done with the __align__ command. Telling nvcc to se the whole struct as a complete call. We can load the complete struct as one 16byte load. 
 
-If we want memory to coalcesce we need the momory not just to be adjecent.
+***Aligning our struct will basically tell the compiler how to structure the memory addresses for our data eg __align__(16) for a struct will store the data in memory of multiple of n. For our pixel_t struct that is completely ok since we've got 4 floats (4*4 bytes, i.e 16).***
+
+Each thread reads a 32bit value.
+First thread reads first 4 bytes, next read the second and so on.
+In the case of 128bytes, ie 32 threads in our warp, we can load the whole data in one memory transactions.
+
+When reading from source see monochrome bad [example](./code1/kernels/monochrome.cu), the pixels are read in a strided manner so there is no way for the memory to coalesce but adding the alignement of the struct (or rather telling the compiler) makes it possible to read the whole pixel as one chunk.
+
+
+If we want memory to coalesce we need the memory not just to be adjacent.
 They need to be aligned on a 32, 64 or 128 byte size.
 
-So the image need to be a multiple of these. Since some warps will not be full, alot of warps will 
-have to call on the GlobalMemory, creating alot of unecessary calls.
+So the image need to be a multiple of these. Since some warps will not be full, alot of warps will have to call on the GlobalMemory, creating alot of unecessary calls.
 
 To handle these problems it can be better to work with padded arrays.
 Drawing down on the memory calls.
 
 Allocate -> copy to padded 2d buffer -> copy back to host
 
+## Cuda pro-tips for memory alignement or "How to Access Global Memory Efficiently in CUDA C/C++ Kernels"
+
+[Article](https://developer.nvidia.com/blog/how-access-global-memory-efficiently-cuda-c-kernels/) 
 
 ### Texture and Constant Memory
 

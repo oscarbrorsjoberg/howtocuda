@@ -60,7 +60,7 @@ __global__ void spotlights(const planar_image_t source,
   int y = blockIdx.y * blockDim.y + threadIdx.y;
 
 
-  if(x >= source.width || y >= source.height){ 
+  if(x >= source.width || y >= source.height){
     return;
   }
 
@@ -80,7 +80,6 @@ __global__ void spotlights(const planar_image_t source,
   dest.b[index] = clamp(source.b[index] * brightness);
 
 }
-
 
 
 int main(int argc, char *argv[]){
