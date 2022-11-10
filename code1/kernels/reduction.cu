@@ -95,7 +95,6 @@ int main(int argc, char **argv)
 	const unsigned int COUNT = 4096 * 4096;
 	std::unique_ptr<int[]> source(new int[COUNT]);
 
-
 	std::mt19937 rng;
 	rng.seed(0);
 	std::uniform_int_distribution<std::mt19937::result_type> dist(0,9);
@@ -108,8 +107,7 @@ int main(int argc, char **argv)
 	size_t size = COUNT * sizeof(int);
 
 	ck(cudaMalloc(&source_dev, size));
-	ck(
-			cudaMemcpy(source_dev, source.get(), size, cudaMemcpyHostToDevice));
+	ck(cudaMemcpy(source_dev, source.get(), size, cudaMemcpyHostToDevice));
 
 	int BLOCK_SIZE = 128;
 	int n_blocks = (COUNT + BLOCK_SIZE - 1) / (2 * BLOCK_SIZE);
@@ -127,7 +125,6 @@ int main(int argc, char **argv)
 
 		ck(cudaMemcpy(&result, dest_dev, 
           sizeof(result), cudaMemcpyDeviceToHost));
-
 
 	}
 

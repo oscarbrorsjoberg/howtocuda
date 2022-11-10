@@ -187,7 +187,7 @@ void planar_image_free(planar_image_t &img)
   ck(cudaFree(img.b));
 }
 
-// this is stolen from corse, why 128?
+// this is stolen from course, why 128?
 constexpr int BLOCK_SIZE = 128;
 
 /*

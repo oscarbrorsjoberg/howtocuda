@@ -31,7 +31,7 @@ __device__ float light_brightness(float x, float y, unsigned int width,
   float dx = norm_x - light.x;
   float dy = norm_y - light.y;
   float dsqrd = dx * dx + dy * dy;
-  if(dsqrd > light.radius * light.radius){
+  if(dsqrd > (light.radius * light.radius)){
     return 0;
   }
 
@@ -39,7 +39,7 @@ __device__ float light_brightness(float x, float y, unsigned int width,
 
   float scaled_distance = distance / light.radius;
 
-  if(scaled_distance > .8){
+  if(scaled_distance < .8){
     return (1.0f - (scaled_distance - 0.8f * 5.0f) * light.brightness );
   }
   else{

@@ -30,9 +30,50 @@ find_package(GLEW REQUIRED)
 
 # should not use?
 # find_package(CUDA REQUIRED)
-
 # https://stackoverflow.com/questions/27018340/cmake-does-not-properly-find-cuda-library
 find_package(CUDAToolkit REQUIRED)
+
+## GLFW backend
+add_library(util_GLFWState INTERFACE)
+target_sources(util_GLFWState INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/glfw_state/glfw_state.cpp
+)
+target_include_directories(util_GLFWState INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/glfw_state/
+)
+target_link_libraries(util_GLFWState 
+    INTERFACE
+    glfw
+)
+
+## DearImgui
+add_library(DearImgui INTERFACE)
+target_sources(DearImgui INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui_impl_opengl3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui_impl_glfw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui_demo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/imgui_draw.cpp
+)
+target_include_directories(DearImgui INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/imgui/
+)
+
+## imguiBackend
+add_library(util_imguiBackend INTERFACE)
+target_sources(util_imguiBackend INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/imgui/imguiBackend.cpp
+)
+target_include_directories(util_imguiBackend INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/imgui/
+		${OPENGL_INCLUDE_DIR}
+)
+target_link_libraries(util_imguiBackend 
+    INTERFACE
+    DearImgui
+)
+
 
 # What does this do?
 enable_language(CUDA)
@@ -120,10 +161,12 @@ target_include_directories(print_cuda INTERFACE
 )
 
 set_property(TARGET print_cuda PROPERTY CUDA_ARCHITECTURES 61)
+
 set_target_properties(print_cuda 
 	PROPERTIES
 	CUDA_SEPERABLE_COMPILATION ON
 )
+
 target_link_libraries(print_cuda
 	PRIVATE
 	utils
@@ -138,7 +181,7 @@ add_executable(
 set_target_properties(spotlight 
 	PROPERTIES
 	CUDA_SEPERABLE_COMPILATION ON
-  CUDA_ARCHITECTURES 61
+        CUDA_ARCHITECTURES 61
 )
 target_include_directories(spotlight INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/
@@ -148,7 +191,7 @@ target_link_libraries(spotlight
 	PRIVATE
 	utils
 	timer
-  image_reading
+        image_reading
 )
 
 #  ----- add kernel
@@ -161,7 +204,7 @@ add_executable(
 set_target_properties(add_kernel 
 	PROPERTIES
 	CUDA_SEPERABLE_COMPILATION ON
-  CUDA_ARCHITECTURES 61
+        CUDA_ARCHITECTURES 61
 )
 
 target_include_directories(add_kernel INTERFACE
@@ -174,6 +217,34 @@ target_link_libraries(add_kernel
 	kernels
 	utils
 	timer
+)
+
+
+# --- test imgui GLFW
+add_executable(
+    ui_window
+    app/ui_window/main.cpp
+    utils/opengl/gl.cpp
+)
+
+set_target_properties(
+    ui_window
+    PROPERTIES
+    CUDA_SEPERABLE_COMPILATION ON
+    CUDA_ARCHITECTURES 61
+)
+
+target_include_directories(
+    ui_window 
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/util
+    # ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/
+    ${OPENGL_INCLUDE_DIR}
+)
+
+target_link_libraries(
+    ui_window
+    PRIVATE
 )
 
 # main will be build with build flags as above,
