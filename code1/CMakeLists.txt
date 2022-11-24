@@ -31,15 +31,16 @@ find_package(GLEW REQUIRED)
 # should not use?
 # find_package(CUDA REQUIRED)
 # https://stackoverflow.com/questions/27018340/cmake-does-not-properly-find-cuda-library
+
 find_package(CUDAToolkit REQUIRED)
 
 ## GLFW backend
 add_library(util_GLFWState INTERFACE)
 target_sources(util_GLFWState INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/glfw_state/glfw_state.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/glfw_state/glfw_state.cpp
 )
 target_include_directories(util_GLFWState INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/glfw_state/
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/glfw_state/
 )
 target_link_libraries(util_GLFWState 
     INTERFACE
@@ -63,10 +64,10 @@ target_include_directories(DearImgui INTERFACE
 ## imguiBackend
 add_library(util_imguiBackend INTERFACE)
 target_sources(util_imguiBackend INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/imgui/imguiBackend.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/imgui/imguiBackend.cpp
 )
 target_include_directories(util_imguiBackend INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/util/imgui/
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/imgui/
 		${OPENGL_INCLUDE_DIR}
 )
 target_link_libraries(util_imguiBackend 
@@ -223,8 +224,8 @@ target_link_libraries(add_kernel
 # --- test imgui GLFW
 add_executable(
     ui_window
-    app/ui_window/main.cpp
-    utils/opengl/gl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/app/ui_window/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/gl.cpp
 )
 
 set_target_properties(
@@ -236,15 +237,19 @@ set_target_properties(
 
 target_include_directories(
     ui_window 
-    INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/util
-    # ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/
+    PRIVATE ## this can't be interface
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/
     ${OPENGL_INCLUDE_DIR}
 )
 
 target_link_libraries(
     ui_window
     PRIVATE
+    util_GLFWState
+    util_imguiBackend
+    GLEW::glew 
+    OpenGL::GL
+    glfw
 )
 
 # main will be build with build flags as above,

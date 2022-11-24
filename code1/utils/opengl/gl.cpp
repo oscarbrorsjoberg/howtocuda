@@ -1,4 +1,4 @@
-#include "util/gl.hpp"
+#include "gl.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
