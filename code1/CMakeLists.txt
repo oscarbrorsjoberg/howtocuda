@@ -250,6 +250,8 @@ target_link_libraries(
     GLEW::glew 
     OpenGL::GL
     glfw
+	  CUDA::cudart
+    image_reading
 )
 
 # main will be build with build flags as above,

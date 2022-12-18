@@ -576,6 +576,23 @@ Instead use cudaEvents from the CUDA event API.
 ##  prefixSum
 
 
+
+# OpenGL and CUDA
+
+Good example to use:
+postProcessGL in the cuda toolkit examples.
+
+Most of the functions needed are described here:
+[6.24](https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__INTEROP.html#group__CUDART__INTEROP_1ga36881081c8deb4df25c256158e1ac99) 
+
+Extra [head-up](https://stackoverflow.com/questions/9406844/cudagraphicsresourcegetmappedpointer-returns-unknown-error).
+
+
+
+
+
+
+
 ## FAQ
 
 

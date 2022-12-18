@@ -221,7 +221,7 @@ bool CU_readppm_planar_image(
 
     // unpack image create planar image
     unpack_image<<<number_blocks, BLOCK_SIZE>>>(device_image, device_pixels,
-        pixel_count);
+                                                pixel_count);
 
     ck(cudaFree(device_pixels));
     free(host_pixels);

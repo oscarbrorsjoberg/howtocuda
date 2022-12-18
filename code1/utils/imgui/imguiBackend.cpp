@@ -171,7 +171,7 @@ void Window::draw()
 
 	if(id_ ){
 		ImGui::Image(reinterpret_cast<void*>(*id_), 
-				ImVec2(imageWidth_, imageHeight_), ImVec2(0,1), ImVec2(1,0), 
+				ImVec2(imageWidth_, imageHeight_), ImVec2(0,0), ImVec2(1,1), 
 				ImVec4(1.0f,1.0f,1.0f,1.0f), // color picker (1 for active ?)
 				ImVec4(0.0f,0.0f,0.0f,0.0f) // border
 				);
