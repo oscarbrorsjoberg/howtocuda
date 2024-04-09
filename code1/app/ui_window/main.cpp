@@ -10,37 +10,9 @@
 #include "glfw_state.hpp"
 #include "imguiBackend.hpp"
 #include "gl.hpp"
+#include "gltex.hpp"
 #include "ims/ims.hpp"
 #include "utils.h"
-
-/* __global__ { */
-/* } */
-
-namespace fs = std::filesystem;
-
-
-static GLuint *create_texture_id(
-    unsigned int width,
-    unsigned int height)
-{
-  GLuint *out = new GLuint;
-  glGenTextures(1, out);
-  glBindTexture(GL_TEXTURE_2D, *out);
-
-  // set basic parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, 
-              height, 0, GL_RED, GL_FLOAT, NULL);
-
-
-  return out;
-}
-
-
 
 
 int main(int argc, char *argv[])
@@ -97,7 +69,9 @@ int main(int argc, char *argv[])
                   0, 0
                   ));
 
-  ck(cudaMemcpy2DToArray(red_channel, 0, 0, (void*)image_in.r, 4*image_in.width, 4*image_in.width, image_in.height, cudaMemcpyDeviceToDevice));
+  ck(cudaMemcpy2DToArray(red_channel, 0, 0, 
+        (void*)image_in.r, 4*image_in.width, 4*image_in.width, image_in.height, 
+        cudaMemcpyDeviceToDevice));
 
 
   ck(cudaGraphicsUnmapResources(1, 
@@ -132,6 +106,7 @@ int main(int argc, char *argv[])
 		glfwPollEvents();
 
   }
+
 
   delete texId;
 

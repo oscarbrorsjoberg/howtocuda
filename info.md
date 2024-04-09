@@ -575,6 +575,12 @@ Instead use cudaEvents from the CUDA event API.
 
 ##  prefixSum
 
+Doing a prefix sum or a scan.
+
+1. Do local scans.
+2. Do global scan on the local scans.
+3. Do local on local.
+4. Add 
 
 
 # OpenGL and CUDA

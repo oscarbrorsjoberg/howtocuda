@@ -19,6 +19,41 @@
 #include "functions.hpp"
 #include "utils.h"
 
+//__global__
+//__device__
+__global__ void scan0(){
+
+}
+
+__global__ void scan1(){
+
+}
+
+__global__ void scan_fin(){
+
+}
+
+__device__ int blockscan(){
+
+}
+
+bool CUprefixSum(const std::vector<int> &src, const std::vector<int> &dst){
+  assert(src.size() == dst.size());
+  int* src_data = src.data(); 
+  int* dst_data = dst.data();
+
+  size_t src_size = (size_t)(sizeof(src.size()));
+
+  float *dev_arr;
+
+	const int BLOCK_SIZE = 128;
+
+  ck(cudaMalloc(&dev_arr, src_size));
+  ck(cudaMemcpy(dev_arr, src_data, src_size, cudaMemcpyHostToDevice));
+
+
+}
+
 __global__ void add_kernel(float *dest, int n_elts, 
 													const float *a, const float *b)
 {

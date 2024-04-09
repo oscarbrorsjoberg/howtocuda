@@ -47,6 +47,19 @@ target_link_libraries(util_GLFWState
     glfw
 )
 
+# ## gltex
+# add_library(util_gltex INTERFACE)
+# target_sources(util_GLFWState INTERFACE
+#     ${CMAKE_CURRENT_SOURCE_DIR}/utils/glfw_state/glfw_state.cpp
+# )
+# target_include_directories(util_GLFWState INTERFACE 
+#     ${CMAKE_CURRENT_SOURCE_DIR}/utils/glfw_state/
+# )
+# target_link_libraries(util_GLFWState 
+#     INTERFACE
+#     glfw
+# )
+
 ## DearImgui
 add_library(DearImgui INTERFACE)
 target_sources(DearImgui INTERFACE
@@ -192,7 +205,7 @@ target_link_libraries(spotlight
 	PRIVATE
 	utils
 	timer
-        image_reading
+  image_reading
 )
 
 #  ----- add kernel
@@ -226,6 +239,7 @@ add_executable(
     ui_window
     ${CMAKE_CURRENT_SOURCE_DIR}/app/ui_window/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/gl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/textures/gltex.cpp
 )
 
 set_target_properties(
@@ -239,6 +253,7 @@ target_include_directories(
     ui_window 
     PRIVATE ## this can't be interface
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/opengl/textures/
     ${OPENGL_INCLUDE_DIR}
 )
 
